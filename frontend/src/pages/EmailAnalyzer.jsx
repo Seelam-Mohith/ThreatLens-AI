@@ -92,6 +92,19 @@ function EmailAnalyzer() {
 
       {/* Result Card */}
       <ResultCard result={result} isLoading={loading} />
+      {result?.explanation && (
+        <div className="card mt-6 border-l-4 border-indigo-500">
+          <h3 className="text-xl font-bold mb-4">
+            AI Security Analysis
+          </h3>
+
+          <div className="space-y-3">
+            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+              {result.explanation}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Leaderboard */}
       {result && result.leaderboard && (
