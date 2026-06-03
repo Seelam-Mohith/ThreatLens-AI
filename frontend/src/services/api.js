@@ -27,8 +27,10 @@ export const emailApi = {
         isPhishing: response.data.prediction === 'phishing',
         confidence: response.data.confidence,
         message: response.data.message,
+        explanation: response.data.ai_explanation || '',
         details: response.data.details || [],
         leaderboard: response.data.leaderboard || mockLeaderboard,
+        modelUsed: response.data.model_used || '',
       }
     } catch (error) {
       console.warn('API call failed, using mock data:', error.message)
@@ -40,12 +42,16 @@ export const emailApi = {
         message: isPhishing
           ? 'This email shows characteristics of a phishing attempt. Exercise caution.'
           : 'This email appears to be legitimate. It\'s generally safe to open.',
+        explanation: isPhishing
+          ? 'This message uses common phishing patterns like urgency and credential requests.'
+          : 'This message looks routine and does not show obvious phishing indicators.',
         details: [
           isPhishing ? 'Suspicious sender domain' : 'Verified sender',
           isPhishing ? 'Unknown links detected' : 'No suspicious links',
           isPhishing ? 'Urgency language present' : 'Standard communication',
         ],
         leaderboard: mockLeaderboard,
+        modelUsed: 'Demo Analysis Engine',
       }
     }
   },

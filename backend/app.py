@@ -1,11 +1,76 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from pathlib import Path
-import pickle
 import os
 import joblib
-from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
+from dotenv import load_dotenv
+from google import genai
+
+ENV_PATH = Path(__file__).with_name(".env")
+load_dotenv(dotenv_path=ENV_PATH)
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+client = None
+
+if GEMINI_API_KEY:
+    try:
+        client = genai.Client(api_key=GEMINI_API_KEY)
+    except Exception as e:
+        print(f"Failed to initialize Gemini client: {e}")
+
+def generate_ai_explanation(
+    email_content,
+    prediction,
+    confidence
+):
+    if client is None:
+        risk_level = "high" if prediction == "phishing" else "low"
+        action = (
+            "Do not click links or share credentials."
+            if prediction == "phishing"
+            else "No obvious phishing signals were detected, but keep normal caution."
+        )
+        return (
+            f"Classified as {prediction} with {confidence:.0%} confidence. "
+            f"Risk level is {risk_level}. {action}"
+        )
+    
+    prompt = f"""
+    You are a cybersecurity analyst.
+
+    Email:
+    {email_content}
+
+    Prediction:
+    {prediction}
+
+    Confidence:
+    {confidence:.2%}
+
+    Explain:
+    1. Why this email was classified this way.
+    2. Risk level.
+    3. What the user should do.
+
+    Keep response under 100 words.
+    Use simple language.
+    """
+
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
+    except Exception as e:
+        print(f"Gemini explanation failed: {e}")
+        return (
+            f"Classified as {prediction} with {confidence:.0%} confidence. "
+            "AI explanation is currently unavailable."
+        )
+
+    return response.text
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend
@@ -64,9 +129,9 @@ def load_email_model():
         if model_path.exists():
             print(f"Loading SVM model from {model_path}...")
             svm_model = joblib.load(model_path)
-            print("✓ SVM model loaded successfully")
+            print("SVM model loaded successfully")
         else:
-            print(f"⚠ SVM model not found at {model_path}")
+            print(f"Warning: SVM model not found at {model_path}")
 
         # Load Vectorizer
         vectorizer_path = ML_EMAIL_PATH / 'vectorizer.pkl'
@@ -74,12 +139,12 @@ def load_email_model():
         if vectorizer_path.exists():
             print(f"Loading vectorizer from {vectorizer_path}...")
             tfidf_vectorizer = joblib.load(vectorizer_path)
-            print("✓ TF-IDF vectorizer loaded successfully")
+            print("TF-IDF vectorizer loaded successfully")
         else:
-            print(f"⚠ Vectorizer not found at {vectorizer_path}")
+            print(f"Warning: Vectorizer not found at {vectorizer_path}")
 
     except Exception as e:
-        print(f"✗ Error loading model files: {e}")
+        print(f"Error loading model files: {e}")
 
     model_loaded = True
 
@@ -98,6 +163,9 @@ def analyze_email_content(email_content):
         try:
             # Try to use the loaded SVM model
             if hasattr(svm_model, 'predict'):
+                if tfidf_vectorizer is None:
+                    raise ValueError("TF-IDF vectorizer is unavailable")
+
                 # Reshape input for sklearn
                 email_vector = tfidf_vectorizer.transform([email_content])
 
@@ -137,7 +205,7 @@ def analyze_email_content(email_content):
                     'matches': 1 if is_phishing else 0
                 }
         except Exception as e:
-            print(f"⚠ SVM prediction error: {e}, falling back to pattern analysis")
+            print(f"Warning: SVM prediction error: {e}, falling back to pattern analysis")
             # Fallback to pattern matching
             return analyze_email_pattern(email_content)
     else:
@@ -228,17 +296,38 @@ def email_check():
         # Analyze email
         analysis = analyze_email_content(email_content)
         
+        prediction = (
+            "phishing"
+            if analysis["is_phishing"]
+            else "safe"
+        )
+
+        ai_explanation = generate_ai_explanation(
+            email_content,
+            prediction,
+            analysis["confidence"]
+        )
+        
         return jsonify({
             'prediction': 'phishing' if analysis['is_phishing'] else 'safe',
             'confidence': analysis['confidence'],
+
             'message': (
                 'This email shows characteristics of a phishing attempt. Exercise caution.'
                 if analysis['is_phishing']
                 else 'This email appears to be legitimate. It\'s generally safe to open.'
             ),
+
+            'ai_explanation': ai_explanation,
+
             'details': analysis['details'],
+
             'leaderboard': LEADERBOARD_DATA,
-            'model_used': analysis.get('model_used', 'Pattern Analysis Engine')
+
+            'model_used': analysis.get(
+                'model_used',
+                'Pattern Analysis Engine'
+            )
         }), 200
     
     except Exception as e:
