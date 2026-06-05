@@ -1,3 +1,7 @@
+from email.mime import message
+from unittest import result
+from unittest import result
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from pathlib import Path
@@ -319,6 +323,101 @@ def analyze_email_pattern(email_content):
         'model_used': 'Pattern Analysis Engine (Fallback)',
         'matches': matches
     }
+    
+ML_SMS_PATH = Path(__file__).parent.parent / 'ml' / 'sms'
+
+sms_model = None
+sms_vectorizer = None
+sms_label_encoder = None
+sms_model_loaded = False
+
+def load_sms_model():
+
+    global sms_model
+    global sms_vectorizer
+    global sms_label_encoder
+    global sms_model_loaded
+
+    if sms_model_loaded:
+        return
+
+    try:
+
+        sms_model = joblib.load(
+            ML_SMS_PATH / "svm_model_SMS.pkl"
+        )
+
+        sms_vectorizer = joblib.load(
+            ML_SMS_PATH / "vectorizer_SMS.pkl"
+        )
+
+        sms_label_encoder = joblib.load(
+            ML_SMS_PATH / "label_encoder_SMS.pkl"
+        )
+
+        print("SMS model loaded successfully")
+        print("Classes:", sms_label_encoder.classes_)
+
+    except Exception as e:
+        print(f"SMS model load error: {e}")
+
+    sms_model_loaded = True
+    
+def analyze_sms_content(message):
+
+    global sms_model
+
+    if not sms_model_loaded:
+        load_sms_model()
+
+    try:
+
+        vector = sms_vectorizer.transform([message])
+
+        prediction = sms_model.predict(vector)
+
+        print("Raw prediction:", prediction)
+
+        result = sms_label_encoder.inverse_transform(
+        prediction
+        )[0]
+
+        print("Decoded prediction:", result)
+
+        is_spam = (result == 1)
+
+        print("Is spam:", is_spam)
+
+        scores = sms_model.decision_function(vector)
+
+        print("Scores:", scores)
+
+        exp_scores = np.exp(scores)
+
+        probs = exp_scores / np.sum(exp_scores)
+
+        confidence = round(
+            float(np.max(probs)),
+            3
+        )
+
+        print("Confidence:", confidence)
+
+        return {
+            "is_spam": is_spam,
+            "prediction": result,
+            "confidence": confidence
+        }
+
+    except Exception as e:
+
+        print(f"SMS Prediction Error: {e}")
+
+        return {
+            "is_spam": False,
+            "prediction": "unknown",
+            "confidence": 0
+        }
 
 def analyze_url(url):
     """
@@ -407,6 +506,51 @@ def email_check():
     
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+@app.route('/api/sms-check', methods=['POST'])
+def sms_check():
+
+    try:
+
+        data = request.get_json()
+
+        print("SMS Request:", data)
+
+        message = data.get('content', '')
+
+        print("Message:", message)
+
+        if not message:
+            return jsonify({
+                'error': 'SMS content required'
+            }), 400
+
+        analysis = analyze_sms_content(message)
+
+        return jsonify({
+
+            'prediction':
+                'spam'
+                if analysis['is_spam']
+                else 'ham',
+
+            'confidence':
+                analysis['confidence'],
+
+            'message':
+                'Spam SMS detected'
+                if analysis['is_spam']
+                else 'Legitimate SMS',
+
+            'model_used':
+                'SVM SMS Classifier'
+        })
+
+    except Exception as e:
+
+        return jsonify({
+            'error': str(e)
+        }), 500
 
 @app.route('/api/url-check', methods=['POST'])
 def url_check():
