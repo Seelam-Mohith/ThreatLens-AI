@@ -66,7 +66,7 @@ function SMSAnalyzer() {
         <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex gap-3">
           <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
           <p className="text-sm text-blue-700 dark:text-blue-300">
-            SMS content is analyzed locally with a demo detection engine. No data is stored.
+            SMS content is analyzed locally with our detection engine. No data is stored.
           </p>
         </div>
       </div>
