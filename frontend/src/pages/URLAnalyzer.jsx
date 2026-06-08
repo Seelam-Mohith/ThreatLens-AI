@@ -87,7 +87,7 @@ function URLAnalyzer() {
         <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex gap-3">
           <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
           <p className="text-sm text-blue-700 dark:text-blue-300">
-            Analysis is performed safely without visiting the URL. We check domain reputation, SSL certificates, and common phishing patterns.
+            Analysis is performed safely without visiting the URL. The frontend sends the URL text to the backend classifier, which returns a phishing or legitimate prediction and confidence score.
           </p>
         </div>
       </div>
@@ -151,19 +151,19 @@ function URLAnalyzer() {
           <ul className="space-y-3 text-gray-700 dark:text-gray-300">
             <li className="flex gap-3">
               <span className="text-indigo-600">•</span>
-              <span><strong>Domain Analysis:</strong> Checks registration date, age, and reputation</span>
+              <span><strong>Model Inference:</strong> Sends the URL string to the trained backend classifier</span>
             </li>
             <li className="flex gap-3">
               <span className="text-indigo-600">•</span>
-              <span><strong>SSL Verification:</strong> Validates security certificate authenticity</span>
+              <span><strong>Confidence Score:</strong> Shows how strongly the model supports the prediction</span>
             </li>
             <li className="flex gap-3">
               <span className="text-indigo-600">•</span>
-              <span><strong>Pattern Matching:</strong> Identifies known phishing patterns and techniques</span>
+              <span><strong>Fallback Logic:</strong> Uses pattern checks only if the trained model is unavailable</span>
             </li>
             <li className="flex gap-3">
               <span className="text-indigo-600">•</span>
-              <span><strong>Reputation Check:</strong> Compares against known malicious URL databases</span>
+              <span><strong>Safe Handling:</strong> Analyzes the URL text without opening the destination</span>
             </li>
           </ul>
         </div>

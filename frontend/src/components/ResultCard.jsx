@@ -61,6 +61,14 @@ function ResultCard({ result, isLoading }) {
           </ul>
         </div>
       )}
+
+      {result.modelUsed && (
+        <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Model used: <span className="font-medium text-gray-800 dark:text-gray-200">{result.modelUsed}</span>
+          </p>
+        </div>
+      )}
     </div>
   )
 }

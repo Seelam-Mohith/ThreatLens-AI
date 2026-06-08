@@ -72,6 +72,7 @@ export const urlApi = {
         message: response.data.message,
         details: response.data.details || [],
         leaderboard: response.data.leaderboard || mockLeaderboard,
+        modelUsed: response.data.model_used || '',
       }
     } catch (error) {
       console.warn('API call failed, using mock data:', error.message)
@@ -89,6 +90,7 @@ export const urlApi = {
           isPhishing ? 'Known phishing pattern' : 'No known threats',
         ],
         leaderboard: mockLeaderboard,
+        modelUsed: 'Demo Analysis Engine',
       }
     }
   },
