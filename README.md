@@ -1,7 +1,7 @@
-# ThreatLens-AI
+# QuantShield
 **An intelligent threat detection system for identifying phishing emails and malicious URLs.**
 
-ThreatLensAI is an intelligent cybersecurity platform designed to detect phishing emails and malicious URLs using machine learning. The system combines trained classification models with a modern web interface to provide real-time threat analysis, risk assessment, and detailed detection reports.
+QuantShield is an intelligent cybersecurity platform designed to detect phishing emails and malicious URLs using machine learning. The system combines trained classification models with a modern web interface to provide real-time threat analysis, risk assessment, and detailed detection reports.
 
 <div align="center">
 
@@ -66,7 +66,7 @@ Machine Learning Layer
 ## Project Structure
 
 ```text
-ThreatLensAI/
+QuantShield/
 │
 ├── backend/
 │   ├── app.py
