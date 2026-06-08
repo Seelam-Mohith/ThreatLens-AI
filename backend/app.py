@@ -153,6 +153,72 @@ def build_local_sms_explanation(message_content, prediction, confidence):
     return "\n".join([summary, "", *sections])
 
 
+def build_local_url_explanation(url, prediction, confidence):
+    normalized = (url or "").lower()
+    risk_level = "high" if prediction == "phishing" else "low"
+
+    suspicious_signals = []
+    signal_checks = [
+        (
+            any(keyword in normalized for keyword in ["bit.ly", "tinyurl", "short.link"]),
+            "Uses a shortened link pattern that can hide the real destination.",
+        ),
+        (
+            any(keyword in normalized for keyword in ["login", "verify", "confirm", "update"]),
+            "Contains credential or account-action language often used in phishing URLs.",
+        ),
+        (
+            any(keyword in normalized for keyword in ["secure-", "auth-", "admin-"]),
+            "Includes impersonation-style subdomain or hostname wording.",
+        ),
+        (
+            not normalized.startswith("https://"),
+            "Does not start with HTTPS, so transport security is weaker or unclear.",
+        ),
+    ]
+
+    for matched, description in signal_checks:
+        if matched:
+            suspicious_signals.append(description)
+
+    if not suspicious_signals:
+        if prediction == "phishing":
+            suspicious_signals.append("The URL model found phishing-like patterns in the link structure.")
+        else:
+            suspicious_signals.append("The URL does not show the common shortening, credential, or impersonation patterns usually seen in phishing links.")
+
+    recommended_actions = (
+        [
+            "Avoid opening the link or entering credentials into any page it leads to.",
+            "Verify the destination through an official website or trusted bookmark first.",
+            "Share the link with your security team if it was unexpected or urgent.",
+        ]
+        if prediction == "phishing"
+        else
+        [
+            "No strong phishing indicators were detected in this scan.",
+            "Still confirm the domain carefully before signing in or sharing sensitive information.",
+            "Keep normal caution with shortened links or unexpected account-related URLs.",
+        ]
+    )
+
+    summary = (
+        f"This URL was classified as {prediction} with {confidence:.0%} confidence."
+        f" The current risk level is {risk_level}."
+    )
+
+    sections = [
+        "Why it was classified this way:",
+        *[f"- {signal}" for signal in suspicious_signals[:3]],
+        "Risk level:",
+        f"- {risk_level.capitalize()} risk based on the model result and the URL wording.",
+        "What you should do:",
+        *[f"- {action}" for action in recommended_actions],
+    ]
+
+    return "\n".join([summary, "", *sections])
+
+
 def explain_fallback_reason(error):
     error_text = str(error)
 
@@ -258,6 +324,59 @@ def generate_ai_sms_explanation(
         print(f"Gemini SMS explanation failed: {e}")
         return {
             'text': build_local_sms_explanation(message_content, prediction, confidence),
+            'source': 'local_fallback',
+            'note': explain_fallback_reason(e),
+        }
+
+    return {
+        'text': response.text,
+        'source': 'gemini',
+        'note': '',
+    }
+
+
+def generate_ai_url_explanation(
+    url,
+    prediction,
+    confidence
+):
+    if client is None:
+        return {
+            'text': build_local_url_explanation(url, prediction, confidence),
+            'source': 'local_fallback',
+            'note': 'Gemini client is not configured.',
+        }
+
+    prompt = f"""
+    You are a cybersecurity analyst.
+
+    URL:
+    {url}
+
+    Prediction:
+    {prediction}
+
+    Confidence:
+    {confidence:.2%}
+
+    Explain:
+    1. Why this URL was classified this way.
+    2. Risk level.
+    3. What the user should do.
+
+    Keep response under 100 words.
+    Use simple language.
+    """
+
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
+    except Exception as e:
+        print(f"Gemini URL explanation failed: {e}")
+        return {
+            'text': build_local_url_explanation(url, prediction, confidence),
             'source': 'local_fallback',
             'note': explain_fallback_reason(e),
         }
@@ -824,15 +943,24 @@ def url_check():
         
         # Analyze URL
         analysis = analyze_url(url)
+        prediction = 'phishing' if analysis['is_phishing'] else 'safe'
+        explanation_result = generate_ai_url_explanation(
+            url,
+            prediction,
+            analysis['confidence']
+        )
         
         return jsonify({
-            'prediction': 'phishing' if analysis['is_phishing'] else 'safe',
+            'prediction': prediction,
             'confidence': analysis['confidence'],
             'message': (
                 'This URL may be malicious or designed to phish for credentials.'
                 if analysis['is_phishing']
                 else 'This URL appears to be safe to visit.'
             ),
+            'ai_explanation': explanation_result['text'],
+            'explanation_source': explanation_result['source'],
+            'explanation_note': explanation_result['note'],
             'details': analysis['details'],
             'leaderboard': LEADERBOARD_DATA,
             'model_used': analysis.get('model_used', 'URL Threat Analysis Engine')

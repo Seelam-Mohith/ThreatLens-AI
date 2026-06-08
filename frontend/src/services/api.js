@@ -70,6 +70,9 @@ export const urlApi = {
         isPhishing: response.data.prediction === 'phishing',
         confidence: response.data.confidence,
         message: response.data.message,
+        explanation: response.data.ai_explanation || '',
+        explanationSource: response.data.explanation_source || 'unknown',
+        explanationNote: response.data.explanation_note || '',
         details: response.data.details || [],
         leaderboard: response.data.leaderboard || mockLeaderboard,
         modelUsed: response.data.model_used || '',
@@ -84,6 +87,11 @@ export const urlApi = {
         message: isPhishing
           ? 'This URL may be malicious or designed to phish for credentials.'
           : 'This URL appears to be safe to visit.',
+        explanation: isPhishing
+          ? 'This URL shows phishing-like link patterns such as account-action wording, shortened link behavior, or other suspicious structure.'
+          : 'This URL does not show strong phishing patterns in the fallback demo analysis.',
+        explanationSource: 'demo',
+        explanationNote: 'Backend API unavailable.',
         details: [
           isPhishing ? 'Domain age suspicious' : 'Verified domain',
           isPhishing ? 'SSL certificate issues' : 'Valid SSL certificate',
