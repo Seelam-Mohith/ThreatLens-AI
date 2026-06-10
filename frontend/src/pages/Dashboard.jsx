@@ -91,7 +91,7 @@ function Dashboard() {
         <p className="text-lg text-gray-600 dark:text-gray-400">Inspect model performance by analysis type</p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6 mb-8">
+      <div className="space-y-6 mb-8">
         <ModelCard
           title="Email Models"
           description="Models trained for email phishing detection and their performance."

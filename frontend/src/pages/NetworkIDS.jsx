@@ -82,7 +82,7 @@ function NetworkIDS() {
         </p>
       </div>
 
-      <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-8">
+      <div className="space-y-8">
         <section className="card">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <div>
