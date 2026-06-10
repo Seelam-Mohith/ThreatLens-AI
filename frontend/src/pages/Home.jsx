@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Mail, Globe, BarChart3, ArrowRight, MessageSquare } from 'lucide-react'
+import { Mail, Globe, BarChart3, ArrowRight, MessageSquare, Wifi } from 'lucide-react'
 
 function Home() {
   const [hoveredCard, setHoveredCard] = useState(null)
@@ -26,6 +26,13 @@ function Home() {
       description: 'Analyze SMS messages for phishing and scam content',
       link: '/sms-analyzer',
       color: 'from-green-500 to-teal-500',
+    },
+    {
+      icon: Wifi,
+      title: 'Network IDS',
+      description: 'Monitor captured network traffic and spot suspicious behavior',
+      link: '/network-ids',
+      color: 'from-indigo-500 to-violet-500',
     },
     {
       icon: BarChart3,
@@ -75,7 +82,7 @@ function Home() {
           Powerful Detection Tools
         </h2>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-8">
           {features.map((feature, idx) => {
             const Icon = feature.icon
             return (

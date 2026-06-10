@@ -11,6 +11,7 @@ const Navbar = memo(function Navbar() {
     { name: 'Email Analyzer', path: '/email-analyzer' },
     { name: 'SMS Analyzer', path: '/sms-analyzer' },
     { name: 'URL Analyzer', path: '/url-analyzer' },
+    { name: 'Network IDS', path: '/network-ids' },
     { name: 'Model Statistics', path: '/dashboard' },
   ]
 

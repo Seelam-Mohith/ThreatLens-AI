@@ -11,6 +11,7 @@ const EmailAnalyzer = lazy(() => import('./pages/EmailAnalyzer'))
 const URLAnalyzer = lazy(() => import('./pages/URLAnalyzer'))
 const SMSAnalyzer = lazy(() => import('./pages/SMSAnalyzer'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
+const NetworkIDS = lazy(() => import('./pages/NetworkIDS'))
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
                 <Route path="/email-analyzer" element={<EmailAnalyzer />} />
                 <Route path="/url-analyzer" element={<URLAnalyzer />} />
                 <Route path="/sms-analyzer" element={<SMSAnalyzer />} />
+                <Route path="/network-ids" element={<NetworkIDS />} />
                 <Route path="/dashboard" element={<Dashboard />} />
               </Routes>
             </main>
