@@ -1,100 +1,129 @@
-import { useState, useEffect } from 'react'
 import { Activity } from 'lucide-react'
-import LeaderboardTable from '../components/LeaderboardTable'
-import { dashboardApi } from '../services/api'
+
+const emailModels = [
+  { model: 'LinearSVM', accuracy: 98.89, precision: 99, recall: 99, f1: 99 },
+  { model: 'Logistic Regression', accuracy: 98.43, precision: 99, recall: 98, f1: 98 },
+  { model: 'XGBoost', accuracy: 88.6, precision: 97, recall: 77, f1: 86 },
+]
+
+const smsModels = [
+  { model: 'Linear SVM', accuracy: 95.4, precision: 95.21, recall: 95.4, f1: 95.28 },
+  { model: 'Logistic Regression', accuracy: 93.97, precision: 93.72, recall: 93.97, f1: 93.81 },
+  { model: 'Multinomial NB', accuracy: 93.81, precision: 93.47, recall: 93.81, f1: 93.11 },
+]
+
+const urlModels = [
+  { model: 'Linear SVM', accuracy: 97.65, precision: 97.41, recall: 97.22, f1: 97.31 },
+  { model: 'Random Forest', accuracy: 95.1, precision: 94.62, recall: 94.8, f1: 94.71 },
+  { model: 'XGBoost', accuracy: 93.8, precision: 93.11, recall: 93.25, f1: 93.18 },
+]
+
+function ModelTable({ data, highlight }) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b-2 border-gray-200 dark:border-gray-700">
+            <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Model</th>
+            <th className="text-center py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Accuracy</th>
+            <th className="text-center py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Precision</th>
+            <th className="text-center py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Recall</th>
+            <th className="text-center py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">F1 Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((row, idx) => (
+            <tr
+              key={row.model}
+              className={`border-b border-gray-100 dark:border-gray-700 transition-colors ${
+                highlight === row.model
+                  ? 'bg-indigo-50 dark:bg-indigo-900/30'
+                  : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
+              }`}
+            >
+              <td className="py-3 px-4 font-semibold text-gray-800 dark:text-gray-200">
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`inline-flex items-center justify-center w-7 h-7 rounded-full font-semibold ${
+                      idx === 0
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : idx === 1
+                          ? 'bg-gray-100 text-gray-800'
+                          : 'bg-amber-100 text-amber-800'
+                    }`}
+                  >
+                    {idx + 1}
+                  </span>
+                  <span>{row.model}</span>
+                </div>
+              </td>
+              <td className="py-3 px-4 text-center">
+                <span className="inline-block px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200 font-semibold">
+                  {row.accuracy.toFixed(2)}%
+                </span>
+              </td>
+              <td className="py-3 px-4 text-center text-gray-700 dark:text-gray-300">{row.precision.toFixed(2)}%</td>
+              <td className="py-3 px-4 text-center text-gray-700 dark:text-gray-300">{row.recall.toFixed(2)}%</td>
+              <td className="py-3 px-4 text-center text-gray-700 dark:text-gray-300">{row.f1.toFixed(2)}%</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function ModelCard({ title, description, data, highlight }) {
+  return (
+    <div className="card">
+      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">{title}</h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{description}</p>
+      <ModelTable data={data} highlight={highlight} />
+    </div>
+  )
+}
 
 function Dashboard() {
-  const [loading, setLoading] = useState(true)
-  const [performanceData, setPerformanceData] = useState([])
-  const [stats, setStats] = useState(null)
-
-  useEffect(() => {
-    async function load() {
-      try {
-        const s = await dashboardApi.getStats()
-        const p = await dashboardApi.getModelPerformance()
-        setStats(s)
-        setPerformanceData(p || [])
-      } catch (err) {
-        console.error('Failed to load model statistics', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
-  }, [])
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <Activity className="w-12 h-12 text-indigo-600 animate-spin-slow mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">Loading model statistics...</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="max-w-7xl mx-auto">
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">Model Statistics</h1>
-        <p className="text-lg text-gray-600 dark:text-gray-400">Inspect models and performance by analysis type</p>
+        <p className="text-lg text-gray-600 dark:text-gray-400">Inspect model performance by analysis type</p>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6 mb-8">
-        <div className="card">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Email Models</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Models trained for email phishing detection and their performance.</p>
-          <LeaderboardTable data={performanceData} highlight="SVM (Linear, LinearSVC)" />
-        </div>
+        <ModelCard
+          title="Email Models"
+          description="Models trained for email phishing detection and their performance."
+          data={emailModels}
+          highlight="LinearSVM"
+        />
 
-        <div className="card">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">URL Models</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Models focused on URL and link threat detection.</p>
-          <LeaderboardTable data={performanceData} highlight="XGBoost Classifier" />
-        </div>
+        <ModelCard
+          title="SMS Models"
+          description="Models for SMS/scam detection and message threat classification."
+          data={smsModels}
+          highlight="Linear SVM"
+        />
 
-        <div className="card">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">SMS Models</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Models for SMS/scam detection (short messages and links).</p>
-          <LeaderboardTable data={performanceData} highlight="Multinomial Naive Bayes" />
-        </div>
+        <ModelCard
+          title="URL Models"
+          description="Models focused on URL and link threat detection."
+          data={urlModels}
+          highlight="Linear SVM"
+        />
       </div>
 
-      <div className="card">
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Detailed Model Performance</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b-2 border-gray-200 dark:border-gray-700">
-                <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Model</th>
-                <th className="text-center py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">F1 Score</th>
-                <th className="text-center py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Accuracy</th>
-                <th className="text-center py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Precision</th>
-                <th className="text-center py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Recall</th>
-                <th className="text-center py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {performanceData?.map((row, idx) => (
-                <tr key={idx} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                  <td className="py-3 px-4 font-semibold text-gray-800 dark:text-gray-200">{row.model}</td>
-                  <td className="py-3 px-4 text-center">
-                    <span className="inline-block px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200 font-semibold">
-                      {(row.f1 * 100).toFixed(2)}%
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-center text-gray-700 dark:text-gray-300">{(row.accuracy * 100).toFixed(2)}%</td>
-                  <td className="py-3 px-4 text-center text-gray-700 dark:text-gray-300">{(row.precision * 100).toFixed(2)}%</td>
-                  <td className="py-3 px-4 text-center text-gray-700 dark:text-gray-300">{(row.recall * 100).toFixed(2)}%</td>
-                  <td className="py-3 px-4 text-center">
-                    <span className="inline-block px-3 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-200 text-xs font-semibold">Active</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="card bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20">
+        <div className="flex items-start gap-4">
+          <Activity className="w-8 h-8 text-indigo-600 flex-shrink-0 mt-1" />
+          <div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Overview</h3>
+            <p className="text-gray-700 dark:text-gray-300">
+              The dashboard now focuses on three detailed model groups: Email, SMS, and URL analysis, so the
+              performance of each detection path is easier to compare at a glance.
+            </p>
+          </div>
         </div>
       </div>
     </div>
