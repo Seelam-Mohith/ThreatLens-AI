@@ -125,7 +125,7 @@ function Home() {
         <div className="grid md:grid-cols-4 gap-8">
           {[
             { label: 'Models Trained', value: '5+' },
-            { label: 'Best Accuracy', value: '98.45%' },
+            { label: 'Best Accuracy', value: '98.89%' },
             { label: 'Emails Analyzed', value: '82K+' },
             { label: 'Detection Rate', value: '99%' },
           ].map((stat, idx) => (
