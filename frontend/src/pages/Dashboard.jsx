@@ -91,7 +91,20 @@ function Dashboard() {
         <p className="text-lg text-gray-600 dark:text-gray-400">Inspect model performance by analysis type</p>
       </div>
 
-      <div className="space-y-6 mb-8">
+      <div className="card bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20">
+        <div className="flex items-start gap-4">
+          <Activity className="w-8 h-8 text-indigo-600 flex-shrink-0 mt-1" />
+          <div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Overview</h3>
+            <p className="text-gray-700 dark:text-gray-300">
+              The dashboard now focuses on three detailed model groups: Email, SMS, and URL analysis, so the
+              performance of each detection path is easier to compare at a glance.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-6 mt-8">
         <ModelCard
           title="Email Models"
           description="Models trained for email phishing detection and their performance."
@@ -112,19 +125,6 @@ function Dashboard() {
           data={urlModels}
           highlight="Linear SVM"
         />
-      </div>
-
-      <div className="card bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20">
-        <div className="flex items-start gap-4">
-          <Activity className="w-8 h-8 text-indigo-600 flex-shrink-0 mt-1" />
-          <div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Overview</h3>
-            <p className="text-gray-700 dark:text-gray-300">
-              The dashboard now focuses on three detailed model groups: Email, SMS, and URL analysis, so the
-              performance of each detection path is easier to compare at a glance.
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   )
