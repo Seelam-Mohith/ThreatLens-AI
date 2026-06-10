@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Activity, Play, Shield, Square, Wifi } from 'lucide-react'
+import { Activity, Play, Shield, Square, Upload, Wifi } from 'lucide-react'
 
 const samplePackets = [
   {
@@ -48,6 +48,23 @@ function NetworkIDS() {
   const [isCapturing, setIsCapturing] = useState(false)
   const [capturedPackets, setCapturedPackets] = useState([])
   const [captureIndex, setCaptureIndex] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const [pcapFile, setPcapFile] = useState(null)
+
+  const handleFileSelection = (file) => {
+    if (!file) return
+    const isPcapFile = file.name.toLowerCase().endsWith('.pcap')
+    if (!isPcapFile) return
+    setPcapFile(file)
+    setIsDragging(false)
+  }
+
+  const handleDrop = (event) => {
+    event.preventDefault()
+    setIsDragging(false)
+    const file = event.dataTransfer.files?.[0]
+    handleFileSelection(file)
+  }
 
   useEffect(() => {
     if (!isCapturing) return undefined
@@ -140,6 +157,48 @@ function NetworkIDS() {
             </div>
 
             <div className="bg-gray-50 dark:bg-gray-900/40">
+              <div className="px-5 py-5 border-b border-gray-200 dark:border-gray-700">
+                <label
+                  htmlFor="pcap-upload"
+                  onDragOver={(event) => {
+                    event.preventDefault()
+                    setIsDragging(true)
+                  }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={handleDrop}
+                  className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-8 text-center transition-colors cursor-pointer ${
+                    isDragging
+                      ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
+                      : 'border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-800/50'
+                  }`}
+                >
+                  <Upload className="w-8 h-8 text-indigo-600 mb-3" />
+                  <span className="text-base font-semibold text-gray-900 dark:text-white">
+                    Drag and drop a `.pcap` file here
+                  </span>
+                  <span className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                    or click to browse and attach a capture file
+                  </span>
+                  <input
+                    id="pcap-upload"
+                    type="file"
+                    accept=".pcap"
+                    className="hidden"
+                    onChange={(event) => handleFileSelection(event.target.files?.[0])}
+                  />
+                </label>
+
+                <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
+                  {pcapFile ? (
+                    <span>
+                      Selected file: <span className="font-semibold text-gray-900 dark:text-white">{pcapFile.name}</span>
+                    </span>
+                  ) : (
+                    <span>No `.pcap` file selected yet.</span>
+                  )}
+                </div>
+              </div>
+
               <div className="grid grid-cols-[0.9fr_1.2fr_1.2fr_0.8fr] gap-3 px-5 py-3 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                 <span>Time</span>
                 <span>Source</span>
