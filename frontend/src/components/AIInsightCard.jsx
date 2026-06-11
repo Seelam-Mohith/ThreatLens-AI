@@ -119,13 +119,15 @@ function AIInsightCard({ result, artifactLabel }) {
 
   const explanation = parseExplanation(result?.explanation || '')
   const summaryContent = buildSummaryPoints(explanation.summary)
+  const confidence = Number(result?.confidence)
+  const hasConfidence = Number.isFinite(confidence) && confidence > 0
   const explanationBadge = result?.explanationSource === 'gemini'
     ? 'Gemini Insight'
     : result?.explanationSource === 'local_fallback'
       ? 'Local Fallback'
       : 'Analysis Insight'
-  const confidenceSummary = typeof result?.confidence === 'number'
-    ? `This ${artifactLabel.toLowerCase()} is ${result?.isPhishing ? 'flagged as suspicious' : 'considered safe'} with a confidence score of ${(result.confidence * 100).toFixed(1)}%.`
+  const confidenceSummary = hasConfidence
+    ? `This ${artifactLabel.toLowerCase()} is ${result?.isPhishing ? 'flagged as suspicious' : 'considered safe'} with a confidence score of ${(confidence * 100).toFixed(1)}%.`
     : ''
 
   return (

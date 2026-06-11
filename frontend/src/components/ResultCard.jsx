@@ -11,6 +11,8 @@ function ResultCard({ result, isLoading }) {
 
   const isPredicting = result.isPhishing === true
   const Icon = isPredicting ? AlertCircle : CheckCircle
+  const confidence = Number(result.confidence)
+  const hasConfidence = Number.isFinite(confidence) && confidence > 0
 
   return (
     <div className={`card mt-8 border-l-4 ${isPredicting ? 'border-l-red-500' : 'border-l-green-500'}`}>
@@ -27,18 +29,18 @@ function ResultCard({ result, isLoading }) {
       </div>
 
       {/* Confidence Score */}
-      {result.confidence && (
+      {hasConfidence && (
         <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between mb-2">
             <span className="font-semibold text-gray-700 dark:text-gray-300">Confidence Score</span>
-            <span className="text-2xl font-bold text-indigo-600">{(result.confidence * 100).toFixed(1)}%</span>
+            <span className="text-2xl font-bold text-indigo-600">{(confidence * 100).toFixed(1)}%</span>
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
             <div
               className={`h-full transition-all duration-500 ${
                 isPredicting ? 'bg-red-500' : 'bg-green-500'
               }`}
-              style={{ width: `${result.confidence * 100}%` }}
+              style={{ width: `${confidence * 100}%` }}
             />
           </div>
         </div>

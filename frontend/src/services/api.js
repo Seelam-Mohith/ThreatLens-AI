@@ -117,7 +117,9 @@ export const smsApi = {
 
       return {
         isPhishing: response.data.prediction === 'spam',
-        confidence: response.data.confidence || 0,
+        confidence: typeof response.data.confidence === 'number' && response.data.confidence > 0
+          ? response.data.confidence
+          : null,
         message: response.data.message || '',
         explanation: response.data.ai_explanation || '',
         explanationSource: response.data.explanation_source || 'unknown',
