@@ -107,7 +107,6 @@ export const urlApi = {
 export const smsApi = {
   async checkSms(smsContent) {
     try {
-
       const response = await apiClient.post(
         '/api/sms-check',
         {
@@ -115,12 +114,29 @@ export const smsApi = {
         }
       )
 
+      const predictionValue = String(
+        response.data.prediction ?? response.data.classification ?? ''
+      ).trim().toLowerCase()
+      const isPhishing = (
+        response.data.isPhishing === true ||
+        response.data.is_phishing === true ||
+        predictionValue === 'spam' ||
+        predictionValue === 'phishing' ||
+        predictionValue === 'malicious' ||
+        predictionValue === 'scam'
+      )
+      const confidenceValue = Number(response.data.confidence)
+
       return {
-        isPhishing: response.data.prediction === 'spam',
-        confidence: typeof response.data.confidence === 'number' && response.data.confidence > 0
-          ? response.data.confidence
+        isPhishing,
+        confidence: Number.isFinite(confidenceValue) && confidenceValue > 0
+          ? confidenceValue
           : null,
-        message: response.data.message || '',
+        message: response.data.message || (
+          isPhishing
+            ? 'This SMS looks suspicious and may be part of a phishing/scam.'
+            : 'This SMS appears legitimate.'
+        ),
         explanation: response.data.ai_explanation || '',
         explanationSource: response.data.explanation_source || 'unknown',
         explanationNote: response.data.explanation_note || '',
@@ -128,9 +144,7 @@ export const smsApi = {
         leaderboard: response.data.leaderboard || mockLeaderboard,
         modelUsed: response.data.model_used || 'SVM SMS Classifier',
       }
-
     } catch (error) {
-
       console.warn(
         'API call failed, using mock data for SMS:',
         error.message
